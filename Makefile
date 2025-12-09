@@ -26,7 +26,7 @@ select:
 
 .SILENT:
 
-.PHONY: info menu select reset install html pdf both test test-watch test-coverage clean audit audit-fix outdated update_phony
+.PHONY: info menu select reset install html pdf both test test-watch test-coverage clean audit audit-fix outdated update_phony 
 
 # Default input file
 file ?= CODE_SUMMARY.md
