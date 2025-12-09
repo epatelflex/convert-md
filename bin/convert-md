@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# convert-md - Convert Markdown files to HTML/PDF with Mermaid support
+# Can be run from anywhere
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Print usage information
+usage() {
+    echo "Usage: convert-md [OPTIONS] <format> [input.md] [output]"
+    echo ""
+    echo "Convert Markdown files to HTML and/or PDF with Mermaid diagram support."
+    echo ""
+    echo "Formats:"
+    echo "  html              Convert to HTML only"
+    echo "  pdf               Convert to PDF only"
+    echo "  both              Convert to both HTML and PDF"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help        Show this help message"
+    echo "  -i, --init        Initialize dependencies (run npm install)"
+    echo "  -v, --version     Show version"
+    echo ""
+    echo "Examples:"
+    echo "  convert-md html README.md"
+    echo "  convert-md pdf docs/guide.md output/guide.pdf"
+    echo "  convert-md both README.md"
+    echo "  convert-md --init          # Install dependencies first"
+    echo ""
+    echo "If no input file is specified, defaults to CODE_SUMMARY.md"
+}
+
+# Check if node_modules exists
+check_dependencies() {
+    if [ ! -d "$PROJECT_DIR/node_modules" ]; then
+        echo -e "${YELLOW}⚠️  Dependencies not installed.${NC}"
+        echo ""
+        echo "Run one of the following to install:"
+        echo "  convert-md --init"
+        echo "  cd $PROJECT_DIR && npm install"
+        echo ""
+        return 1
+    fi
+    return 0
+}
+
+# Install dependencies
+init_dependencies() {
+    echo -e "${GREEN}Installing dependencies...${NC}"
+    cd "$PROJECT_DIR" && npm install
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ Dependencies installed successfully${NC}"
+    else
+        echo -e "${RED}✗ Failed to install dependencies${NC}"
+        exit 1
+    fi
+}
+
+# Show version
+show_version() {
+    VERSION=$(node -p "require('$PROJECT_DIR/package.json').version" 2>/dev/null || echo "unknown")
+    echo "convert-md version $VERSION"
+}
+
+# Parse arguments
+if [ $# -eq 0 ]; then
+    usage
+    exit 0
+fi
+
+case "$1" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -v|--version)
+        show_version
+        exit 0
+        ;;
+    -i|--init)
+        init_dependencies
+        exit 0
+        ;;
+    html|pdf|both)
+        FORMAT="$1"
+        shift
+        ;;
+    *)
+        echo -e "${RED}Error: Unknown format or option '$1'${NC}"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac
+
+# Check dependencies before running conversion
+if ! check_dependencies; then
+    exit 1
+fi
+
+# Get input file (use absolute path if relative)
+INPUT_FILE="${1:-}"
+if [ -n "$INPUT_FILE" ] && [ ! "${INPUT_FILE:0:1}" = "/" ]; then
+    INPUT_FILE="$(pwd)/$INPUT_FILE"
+fi
+
+# Get output file if provided
+OUTPUT_FILE="${2:-}"
+if [ -n "$OUTPUT_FILE" ] && [ ! "${OUTPUT_FILE:0:1}" = "/" ]; then
+    OUTPUT_FILE="$(pwd)/$OUTPUT_FILE"
+fi
+
+# Run the conversion
+cd "$PROJECT_DIR"
+if [ -n "$OUTPUT_FILE" ]; then
+    node scripts/convert-markdown.js "$FORMAT" "$INPUT_FILE" "$OUTPUT_FILE"
+elif [ -n "$INPUT_FILE" ]; then
+    node scripts/convert-markdown.js "$FORMAT" "$INPUT_FILE"
+else
+    node scripts/convert-markdown.js "$FORMAT"
+fi

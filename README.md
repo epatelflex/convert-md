@@ -13,26 +13,47 @@ A Node.js utility for converting Markdown files to HTML and PDF with full suppor
 
 ```bash
 npm install
+# or
+bin/convert-md --init
 ```
 
 ## Usage
 
-### Convert to HTML only
+### Command Line Tool (recommended)
+
+The `convert-md` script in `bin/` can be run from anywhere:
+
+```bash
+# Add to your PATH (optional, add to ~/.zshrc or ~/.bashrc)
+export PATH="/path/to/node-tools/bin:$PATH"
+
+# Or run directly
+/path/to/node-tools/bin/convert-md html README.md
+```
+
+```bash
+convert-md html README.md              # Convert to HTML
+convert-md pdf README.md               # Convert to PDF
+convert-md both README.md              # Convert to both
+convert-md html doc.md output.html     # Specify output path
+convert-md --init                      # Install dependencies
+convert-md --help                      # Show help
+```
+
+### npm scripts
 
 ```bash
 npm run convert:html [input.md] [output.html]
-```
-
-### Convert to PDF only
-
-```bash
 npm run convert:pdf [input.md] [output.pdf]
+npm run convert:both [input.md]
 ```
 
-### Convert to both HTML and PDF
+### Makefile
 
 ```bash
-npm run convert:both [input.md]
+make html file=README.md
+make pdf file=README.md
+make both file=README.md
 ```
 
 ### Examples
@@ -42,10 +63,10 @@ npm run convert:both [input.md]
 npm run convert:both
 
 # Convert a specific file
-npm run convert:html docs/my-document.md
+convert-md html docs/my-document.md
 
 # Convert with custom output path
-npm run convert:pdf docs/my-document.md output/document.pdf
+convert-md pdf docs/guide.md output/guide.pdf
 ```
 
 ## Default Behavior
