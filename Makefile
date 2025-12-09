@@ -6,11 +6,14 @@ menu:
 	echo "3 make html               - Convert to HTML"
 	echo "4 make pdf                - Convert to PDF"
 	echo "5 make both               - Convert to HTML and PDF"
-	echo "6 make clean              - Remove generated files"
-	echo "7 make audit              - Run security audit"
-	echo "8 make audit-fix          - Fix security vulnerabilities"
-	echo "9 make outdated           - Check for outdated packages"
-	echo "10 make update_phony      - Update .PHONY targets"
+	echo "6 make test               - Run tests"
+	echo "7 make test-watch         - Run tests in watch mode"
+	echo "8 make test-coverage      - Run tests with coverage"
+	echo "9 make clean              - Remove generated files"
+	echo "10 make audit             - Run security audit"
+	echo "11 make audit-fix         - Fix security vulnerabilities"
+	echo "12 make outdated          - Check for outdated packages"
+	echo "13 make update_phony      - Update .PHONY targets"
 	echo ""
 	echo "Options: file=X           - Specify input file (default: CODE_SUMMARY.md)"
 	echo "Example: make html file=docs/README.md"
@@ -18,12 +21,12 @@ menu:
 select:
 	read -p ">>> " P ; make menu | grep "^$$P " | cut -d ' ' -f2-3 ; make menu | grep "^$$P " | cut -d ' ' -f2-3 | bash
 
-1 2 3 4 5 6 7 8 9 10:
+1 2 3 4 5 6 7 8 9 10 11 12 13:
 	make menu | grep "^$@ " | cut -d ' ' -f2-3 | bash
 
 .SILENT:
 
-.PHONY: info menu select reset install html pdf both clean audit audit-fix outdated update_phony
+.PHONY: info menu select reset install html pdf both test test-watch test-coverage clean audit audit-fix outdated update_phony
 
 # Default input file
 file ?= CODE_SUMMARY.md
@@ -47,6 +50,18 @@ pdf:
 both:
 	echo "Converting $(file) to HTML and PDF..."
 	node scripts/convert-markdown.js both $(file)
+
+test:
+	echo "Running tests..."
+	npm test
+
+test-watch:
+	echo "Running tests in watch mode..."
+	npm run test:watch
+
+test-coverage:
+	echo "Running tests with coverage..."
+	npm run test:coverage
 
 clean:
 	echo "Cleaning generated files..."

@@ -11,7 +11,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { mdToPdf } = require('md-to-pdf');
 const { marked } = require('marked');
 const puppeteer = require('puppeteer');
 
@@ -331,4 +330,16 @@ async function main() {
   }
 }
 
-main();
+// Run main if executed directly
+if (require.main === module) {
+  main();
+}
+
+// Export for testing
+module.exports = {
+  convertToHTML,
+  convertToPDF,
+  DEFAULT_INPUT,
+  DEFAULT_HTML_OUTPUT,
+  DEFAULT_PDF_OUTPUT
+};
