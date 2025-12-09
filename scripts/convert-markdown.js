@@ -234,20 +234,28 @@ async function convertToPDF(inputFile, outputFile) {
     await page.evaluate(() => {
       return new Promise((resolve) => {
         if (typeof mermaid !== 'undefined') {
-          // Wait a bit for Mermaid to render
+          const startTime = Date.now();
+          const timeout = 5000; // 5 second timeout
+          
+          // Wait a bit for Mermaid to initialize
           setTimeout(() => {
             // Check if all Mermaid diagrams are rendered
             const mermaidDivs = document.querySelectorAll('.mermaid');
-            let renderedCount = 0;
+            if (mermaidDivs.length === 0) {
+              resolve();
+              return;
+            }
+            
             const checkRendered = setInterval(() => {
-              renderedCount = 0;
+              let renderedCount = 0;
               mermaidDivs.forEach(div => {
                 if (div.querySelector('svg')) {
                   renderedCount++;
                 }
               });
-              if (renderedCount === mermaidDivs.length ||
-                renderedCount > 0 && Date.now() > Date.now() + 5000) {
+              
+              const elapsed = Date.now() - startTime;
+              if (renderedCount === mermaidDivs.length || elapsed > timeout) {
                 clearInterval(checkRendered);
                 resolve();
               }
@@ -260,7 +268,7 @@ async function convertToPDF(inputFile, outputFile) {
     });
 
     // Additional wait to ensure all diagrams are fully rendered
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Generate PDF
     await page.pdf({

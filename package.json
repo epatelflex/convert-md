@@ -1,15 +1,13 @@
 {
   "name": "emma-docs",
   "version": "1.0.0",
-  "description": "Documentation conversion tools for Emma project",
+  "description": "Documentation conversion tools - converts Markdown files with Mermaid diagrams to HTML and PDF",
   "scripts": {
     "convert:html": "node scripts/convert-markdown.js html",
     "convert:pdf": "node scripts/convert-markdown.js pdf",
     "convert:both": "node scripts/convert-markdown.js both"
   },
   "devDependencies": {
-    "md-to-pdf": "^5.2.3",
-    "@mermaid-js/mermaid-cli": "^10.6.1",
     "marked": "^11.1.1",
     "puppeteer": "^21.0.0"
   }
