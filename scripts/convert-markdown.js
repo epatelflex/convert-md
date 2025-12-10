@@ -63,7 +63,26 @@ async function convertToHTML(inputFile, outputFile) {
         'class $1\n$2 $1'
       );
       
-      // 4. HTML-escape < and > for proper rendering in browser
+      // 4. Fix subgraph names with spaces
+      // Convert "subgraph Name With Spaces" to "subgraph id_name["Name With Spaces"]"
+      // and replace all references to "Name With Spaces" with "id_name"
+      const subgraphsWithSpaces = [];
+      code = code.replace(/subgraph\s+([A-Za-z][A-Za-z0-9]*(?:\s+[A-Za-z][A-Za-z0-9]*)+)(\s*\n)/g, 
+        (match, name, newline) => {
+          const id = name.replace(/\s+/g, '_');
+          subgraphsWithSpaces.push({ name, id });
+          return `subgraph ${id}["${name}"]${newline}`;
+        }
+      );
+      // Replace references to subgraphs with spaces
+      subgraphsWithSpaces.forEach(({ name, id }) => {
+        // Replace references like "Features --> Name With Spaces"
+        const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        code = code.replace(new RegExp(`(-->|---)\\s*${escapedName}(?![\\w])`, 'g'), `$1 ${id}`);
+        code = code.replace(new RegExp(`${escapedName}\\s*(-->|---)`, 'g'), `${id} $1`);
+      });
+      
+      // 5. HTML-escape < and > for proper rendering in browser
       // Mermaid will decode these when parsing
       code = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
       
