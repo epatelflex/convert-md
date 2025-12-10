@@ -35,14 +35,43 @@ async function convertToHTML(inputFile, outputFile) {
   const renderer = new marked.Renderer();
   const originalCode = renderer.code.bind(renderer);
 
-  renderer.code = function (code, infostring, escaped) {
-    const lang = (infostring || '').trim();
-    if (lang === 'mermaid') {
-      // Return Mermaid diagram wrapped in proper div
-      return `<div class="mermaid">${code}</div>\n`;
+  renderer.code = function (codeBlock) {
+    // marked v11+ passes an object with text, lang, escaped properties
+    let code = typeof codeBlock === 'string' ? codeBlock : codeBlock.text;
+    const lang = (typeof codeBlock === 'string' ? arguments[1] : codeBlock.lang) || '';
+    
+    if (lang.trim() === 'mermaid') {
+      // Fix Mermaid syntax issues:
+      
+      // 1. Replace spaces and special chars in <<...>> stereotypes
+      code = code.replace(/<<([^>]+)>>/g, (match, content) => {
+        const sanitized = content.replace(/[\s\/]+/g, '_');
+        return `<<${sanitized}>>`;
+      });
+      
+      // 2. Fix class member syntax issues:
+      // - Remove ? from nullable types (e.g., int? -> int)
+      // - Remove return types after method parentheses (e.g., "method() Type" -> "method()")
+      code = code.replace(/^(\s*[+\-#~]?\w+)\?(\s+\w+)/gm, '$1$2');
+      code = code.replace(/(\(\))\s+\w+$/gm, '$1');
+      
+      // 3. Fix stereotypes inside class bodies - move them outside
+      // Match: class ClassName {\n    <<Stereotype>>\n}
+      // Convert to: class ClassName\n<<Stereotype>> ClassName
+      code = code.replace(
+        /class\s+(\w+)\s*\{\s*\n\s*(<<[^>]+>>)\s*\n\s*\}/g,
+        'class $1\n$2 $1'
+      );
+      
+      // 4. HTML-escape < and > for proper rendering in browser
+      // Mermaid will decode these when parsing
+      code = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      // Return Mermaid diagram wrapped in proper pre tag (better for whitespace)
+      return `<pre class="mermaid">${code}</pre>\n`;
     }
     // Use default code block rendering for other languages
-    return originalCode(code, infostring, escaped);
+    return originalCode(codeBlock);
   };
 
   marked.setOptions({ renderer });

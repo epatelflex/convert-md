@@ -55,7 +55,7 @@ describe('convert-markdown', () => {
       await convertToHTML(inputFile, outputFile);
 
       const html = fs.readFileSync(outputFile, 'utf8');
-      expect(html).toContain('<div class="mermaid">');
+      expect(html).toContain('<pre class="mermaid">');
       expect(html).toContain('sequenceDiagram');
       expect(html).toContain('flowchart LR');
       // Should have mermaid.js script included

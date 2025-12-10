@@ -127,7 +127,7 @@ describe('convert-md CLI', () => {
       expect(fs.existsSync(outputFile)).toBe(true);
       
       const html = fs.readFileSync(outputFile, 'utf8');
-      expect(html).toContain('<div class="mermaid">');
+      expect(html).toContain('<pre class="mermaid">');
     });
 
     test('works with relative paths from different directory', () => {
