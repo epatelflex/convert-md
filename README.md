@@ -1,4 +1,4 @@
-# emma-docs
+# convert-md
 
 A Node.js utility for converting Markdown files to HTML and PDF with full support for Mermaid diagrams.
 
