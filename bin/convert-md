@@ -106,22 +106,48 @@ if ! check_dependencies; then
     exit 1
 fi
 
+# Save current working directory for output
+WORKING_DIR="$(pwd)"
+
 # Get input file (use absolute path if relative)
 INPUT_FILE="${1:-}"
 if [ -n "$INPUT_FILE" ] && [ ! "${INPUT_FILE:0:1}" = "/" ]; then
-    INPUT_FILE="$(pwd)/$INPUT_FILE"
+    INPUT_FILE="$WORKING_DIR/$INPUT_FILE"
 fi
 
-# Get output file if provided
+# Get output file if provided, or generate default in current directory
 OUTPUT_FILE="${2:-}"
-if [ -n "$OUTPUT_FILE" ] && [ ! "${OUTPUT_FILE:0:1}" = "/" ]; then
-    OUTPUT_FILE="$(pwd)/$OUTPUT_FILE"
+if [ -n "$OUTPUT_FILE" ]; then
+    # User specified output - make absolute if relative
+    if [ ! "${OUTPUT_FILE:0:1}" = "/" ]; then
+        OUTPUT_FILE="$WORKING_DIR/$OUTPUT_FILE"
+    fi
+elif [ -n "$INPUT_FILE" ]; then
+    # No output specified - generate in current working directory
+    BASENAME=$(basename "$INPUT_FILE" .md)
+    OUTPUT_FILE="$WORKING_DIR/$BASENAME"
+    # Add extension based on format (will be handled by node script)
 fi
 
 # Run the conversion
 cd "$PROJECT_DIR"
-if [ -n "$OUTPUT_FILE" ]; then
-    node scripts/convert-markdown.js "$FORMAT" "$INPUT_FILE" "$OUTPUT_FILE"
+if [ -n "$OUTPUT_FILE" ] && [ -n "$INPUT_FILE" ]; then
+    if [ "$FORMAT" = "both" ]; then
+        node scripts/convert-markdown.js html "$INPUT_FILE" "${OUTPUT_FILE}.html"
+        node scripts/convert-markdown.js pdf "$INPUT_FILE" "${OUTPUT_FILE}.pdf"
+    elif [ "$FORMAT" = "html" ]; then
+        # Add .html extension if not present
+        if [[ "$OUTPUT_FILE" != *.html ]]; then
+            OUTPUT_FILE="${OUTPUT_FILE}.html"
+        fi
+        node scripts/convert-markdown.js "$FORMAT" "$INPUT_FILE" "$OUTPUT_FILE"
+    elif [ "$FORMAT" = "pdf" ]; then
+        # Add .pdf extension if not present
+        if [[ "$OUTPUT_FILE" != *.pdf ]]; then
+            OUTPUT_FILE="${OUTPUT_FILE}.pdf"
+        fi
+        node scripts/convert-markdown.js "$FORMAT" "$INPUT_FILE" "$OUTPUT_FILE"
+    fi
 elif [ -n "$INPUT_FILE" ]; then
     node scripts/convert-markdown.js "$FORMAT" "$INPUT_FILE"
 else
