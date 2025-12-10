@@ -4,7 +4,7 @@ const path = require('path');
 
 const BIN_PATH = path.join(__dirname, '..', 'bin', 'convert-md');
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');
-const OUTPUT_DIR = path.join(__dirname, 'output');
+const OUTPUT_DIR = path.join(__dirname, 'output-cli');
 
 // Helper to run CLI command
 function runCLI(args = '', options = {}) {
